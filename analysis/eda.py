@@ -1,15 +1,3 @@
-"""
-analysis/eda.py — Exploratory Data Analysis.
-
-Produces:
-- Descriptive statistics table
-- ADF and KPSS stationarity tests
-- Correlation matrix
-- Variance Inflation Factors (VIF)
-- Distribution analysis of targets
-
-All outputs saved to output/tables/ and output/figures/.
-"""
 import sys
 from pathlib import Path
 import numpy as np
@@ -29,10 +17,7 @@ def load_features() -> pd.DataFrame:
     return pd.read_parquet(path)
 
 
-# ══════════════════════════════════════════════════════════════
 #  DESCRIPTIVE STATISTICS
-# ══════════════════════════════════════════════════════════════
-
 def descriptive_statistics(features: pd.DataFrame) -> pd.DataFrame:
     """
     Compute descriptive stats for all key variables.
@@ -95,10 +80,7 @@ def descriptive_statistics(features: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-# ══════════════════════════════════════════════════════════════
 #  STATIONARITY TESTS
-# ══════════════════════════════════════════════════════════════
-
 def stationarity_tests(features: pd.DataFrame) -> pd.DataFrame:
     """
     ADF and KPSS tests for key series.
@@ -152,10 +134,7 @@ def stationarity_tests(features: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-# ══════════════════════════════════════════════════════════════
 #  CORRELATION MATRIX
-# ══════════════════════════════════════════════════════════════
-
 def correlation_matrix(features: pd.DataFrame) -> pd.DataFrame:
     """
     Pearson correlation matrix of all features + targets.
@@ -166,10 +145,7 @@ def correlation_matrix(features: pd.DataFrame) -> pd.DataFrame:
     return features[available].corr()
 
 
-# ══════════════════════════════════════════════════════════════
 #  VARIANCE INFLATION FACTORS
-# ══════════════════════════════════════════════════════════════
-
 def compute_vif(features: pd.DataFrame) -> pd.DataFrame:
     """
     VIF for Model 4 feature set.
@@ -202,10 +178,7 @@ def compute_vif(features: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(vif_data)
 
 
-# ══════════════════════════════════════════════════════════════
 #  DISTRIBUTION ANALYSIS
-# ══════════════════════════════════════════════════════════════
-
 def distribution_analysis(features: pd.DataFrame) -> dict:
     """
     Distribution statistics for targets.
@@ -229,10 +202,7 @@ def distribution_analysis(features: pd.DataFrame) -> dict:
     return results
 
 
-# ══════════════════════════════════════════════════════════════
 #  MASTER EDA RUNNER
-# ══════════════════════════════════════════════════════════════
-
 def run_eda():
     """Run all EDA analyses and save results."""
     print("=" * 60)
