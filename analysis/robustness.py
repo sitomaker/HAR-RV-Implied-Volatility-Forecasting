@@ -1,14 +1,3 @@
-"""
-analysis/robustness.py — Robustness Checks.
-
-Produces:
-- Sub-period analysis (Table 8)
-- Alternative VRP definitions (Table 9)
-- Alternative RV estimators (Table 10)
-- Alternative target specification (Table 11)
-- Alternative training window sizes (Table 12)
-- Ridge vs Lasso vs Elastic Net (Table 13)
-"""
 import sys
 from pathlib import Path
 import numpy as np
@@ -32,10 +21,7 @@ def load_master() -> pd.DataFrame:
     return pd.read_parquet(DATA_PROC / "master.parquet")
 
 
-# ══════════════════════════════════════════════════════════════
 #  UTILITY: QUICK WALK-FORWARD FOR ROBUSTNESS
-# ══════════════════════════════════════════════════════════════
-
 def quick_walk_forward(features: pd.DataFrame,
                        feature_cols: list,
                        target_col: str = "y5",
@@ -114,10 +100,7 @@ def quick_walk_forward(features: pd.DataFrame,
     }
 
 
-# ══════════════════════════════════════════════════════════════
 #  1. SUB-PERIOD ANALYSIS
-# ══════════════════════════════════════════════════════════════
-
 def subperiod_analysis(features: pd.DataFrame) -> pd.DataFrame:
     """
     Compute OOS metrics for each sub-period.
@@ -193,10 +176,7 @@ def subperiod_analysis(features: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-# ══════════════════════════════════════════════════════════════
 #  2. ALTERNATIVE VRP DEFINITIONS
-# ══════════════════════════════════════════════════════════════
-
 def alternative_vrp(features: pd.DataFrame) -> pd.DataFrame:
     """Test robustness to VRP construction."""
     print("\n  2. Alternative VRP definitions...")
@@ -243,10 +223,7 @@ def alternative_vrp(features: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-# ══════════════════════════════════════════════════════════════
 #  3. ALTERNATIVE RV ESTIMATORS
-# ══════════════════════════════════════════════════════════════
-
 def alternative_rv() -> pd.DataFrame:
     """Test robustness to RV estimator choice."""
     print("\n  3. Alternative RV estimators...")
@@ -272,10 +249,7 @@ def alternative_rv() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-# ══════════════════════════════════════════════════════════════
 #  4. ALTERNATIVE TARGET
-# ══════════════════════════════════════════════════════════════
-
 def alternative_target(features: pd.DataFrame) -> pd.DataFrame:
     """Test robustness to log vs arithmetic target."""
     print("\n  4. Alternative target specification...")
@@ -311,10 +285,7 @@ def alternative_target(features: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-# ══════════════════════════════════════════════════════════════
 #  5. TRAINING WINDOW SENSITIVITY
-# ══════════════════════════════════════════════════════════════
-
 def window_sensitivity(features: pd.DataFrame) -> pd.DataFrame:
     """Test sensitivity to minimum training window."""
     print("\n  5. Training window sensitivity...")
@@ -335,10 +306,7 @@ def window_sensitivity(features: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-# ══════════════════════════════════════════════════════════════
 #  6. REGULARISATION COMPARISON
-# ══════════════════════════════════════════════════════════════
-
 def regularization_comparison(features: pd.DataFrame) -> pd.DataFrame:
     """Compare Ridge vs Lasso vs Elastic Net vs OLS."""
     print("\n  6. Regularization comparison...")
@@ -416,10 +384,7 @@ def regularization_comparison(features: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-# ══════════════════════════════════════════════════════════════
 #  MASTER RUNNER
-# ══════════════════════════════════════════════════════════════
-
 def run_robustness():
     """Run all robustness checks."""
     print("=" * 60)
