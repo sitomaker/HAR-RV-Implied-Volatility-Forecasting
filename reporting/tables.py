@@ -1,18 +1,3 @@
-"""
-reporting/tables.py — Generate LaTeX table fragments from results.
-
-Each function produces a .tex file that can be \\input{} into the paper.
-
-Changes from original:
-  - table_dm_cw: completely rewritten; now mirrors the LaTeX tab:test_battery
-    exactly (one row per comparison × horizon), with correct benchmark labels
-    for each DM pair (not all "vs M0"). BH-adjusted p-values included for CW.
-  - table_oos_performance: adds CW column and R²_oos bootstrap CI.
-  - table_mincer_zarnowitz: tabular spec fixed (5 cols in spec and header).
-  - NEW table_regime_r2: R²_oos × regime breakdown (LaTeX §regime_perf).
-  - sig_stars / fmt moved to module level (no duplication).
-  - Model names mapped to clean LaTeX labels via MODEL_LABELS.
-"""
 from __future__ import annotations
 
 import sys
@@ -75,10 +60,8 @@ def _load_metrics() -> pd.DataFrame | None:
     return pd.read_csv(csv_path)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  TABLE 1: DESCRIPTIVE STATISTICS
-# ══════════════════════════════════════════════════════════════════════════════
 
+#  TABLE 1: DESCRIPTIVE STATISTICS
 def table_descriptive() -> None:
     """LaTeX fragment: descriptive statistics."""
     csv_path = TABLE_DIR / "descriptive_stats.csv"
@@ -105,10 +88,8 @@ def table_descriptive() -> None:
     _write_tex(lines, "tab_descriptive.tex")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  TABLE 2: STATIONARITY TESTS
-# ══════════════════════════════════════════════════════════════════════════════
 
+#  TABLE 2: STATIONARITY TESTS
 def table_stationarity() -> None:
     """LaTeX fragment: ADF + KPSS stationarity tests."""
     csv_path = TABLE_DIR / "stationarity_tests.csv"
@@ -135,10 +116,8 @@ def table_stationarity() -> None:
     _write_tex(lines, "tab_stationarity.tex")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  TABLES 3–5: IN-SAMPLE COEFFICIENTS
-# ══════════════════════════════════════════════════════════════════════════════
 
+#  TABLES 3–5: IN-SAMPLE COEFFICIENTS
 def table_insample_coefficients() -> None:
     """LaTeX fragments for HAR-OLS, SHAR, HAR-Extended coefficient tables."""
     import pickle
@@ -253,10 +232,8 @@ def _shar_extra_rows(results: dict, n_h: int) -> list[str]:
     return lines
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  TABLE: VIF
-# ══════════════════════════════════════════════════════════════════════════════
 
+#  TABLE: VIF
 def table_vif() -> None:
     """LaTeX fragment: Variance Inflation Factors."""
     csv_path = TABLE_DIR / "vif.csv"
@@ -279,10 +256,8 @@ def table_vif() -> None:
     _write_tex(lines, "tab_vif.tex")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  TABLE 6: OOS PERFORMANCE
-# ══════════════════════════════════════════════════════════════════════════════
 
+#  TABLE 6: OOS PERFORMANCE
 def table_oos_performance() -> None:
     """
     LaTeX fragment: OOS performance metrics.
@@ -360,12 +335,9 @@ def table_oos_performance() -> None:
     _write_tex(lines, "tab_oos_performance.tex")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  TABLE 7: FULL TEST BATTERY  (LaTeX tab:test_battery)
-# ══════════════════════════════════════════════════════════════════════════════
 
-# Mirrors LaTeX tab:test_battery exactly.
-# Each entry: (model, benchmark, test_type, loss_col)
+#  TABLE 7: FULL TEST BATTERY 
+# Mirrors LaTeX tab:test_battery exactly. Each entry: (model, benchmark, test_type, loss_col)
 _TEST_BATTERY = [
     # (model,             benchmark,        test, stat_col,          pval_col,          bh_col)
     ("M1_GARCH",        "M0_RandomWalk",  "DM", "dm_mse_stat", "dm_mse_pval", "dm_mse_pval_bh"),
@@ -441,10 +413,8 @@ def table_dm_cw() -> None:
     _write_tex(lines, "tab_dm_cw.tex")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  TABLE 8: MINCER-ZARNOWITZ CALIBRATION
-# ══════════════════════════════════════════════════════════════════════════════
 
+#  TABLE 8: MINCER-ZARNOWITZ CALIBRATION
 def table_mincer_zarnowitz() -> None:
     """
     LaTeX fragment: MZ calibration results.
@@ -486,10 +456,8 @@ def table_mincer_zarnowitz() -> None:
     _write_tex(lines, "tab_mincer_zarnowitz.tex")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  TABLE 9: R²_OOS BY REGIME  (NEW — LaTeX §regime_perf)
-# ══════════════════════════════════════════════════════════════════════════════
 
+#  TABLE 9: R²_OOS BY REGIME 
 def table_regime_r2() -> None:
     """
     LaTeX fragment: R²_oos per VIX regime for h=5.
@@ -563,10 +531,8 @@ def table_regime_r2() -> None:
     _write_tex(lines, "tab_regime_r2.tex")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  TABLE: TRADING PERFORMANCE
-# ══════════════════════════════════════════════════════════════════════════════
 
+#  TABLE: TRADING PERFORMANCE
 def table_trading() -> None:
     """LaTeX fragment: trading strategy performance."""
     csv_path = TABLE_DIR / "trading_performance.csv"
@@ -622,10 +588,8 @@ def table_trading() -> None:
     _write_tex(lines, "tab_trading.tex")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  ROBUSTNESS TABLES
-# ══════════════════════════════════════════════════════════════════════════════
 
+#  ROBUSTNESS TABLES
 def table_robustness() -> None:
     """LaTeX fragments for all robustness check tables."""
     robustness_files = {
@@ -687,10 +651,8 @@ def table_robustness() -> None:
         _write_tex(lines, tex_name)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  MASTER GENERATOR
-# ══════════════════════════════════════════════════════════════════════════════
 
+#  MASTER GENERATOR
 def generate_all_tables() -> None:
     """Generate all LaTeX table fragments."""
     print("=" * 60)
