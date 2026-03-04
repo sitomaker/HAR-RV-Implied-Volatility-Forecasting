@@ -1,16 +1,3 @@
-"""
-models/garch.py — M1: GARCH(1,1) Benchmark (v3 — change-based forecast)
-
-Key insight: mapping GARCH *levels* to VIX fails because the P-Q variance
-risk premium is time-varying. Instead, we map GARCH *changes* to ΔVIX
-via a Mincer-Zarnowitz calibration estimated on training data.
-
-    raw_signal_t = sqrt(252·σ²_{t+h|t}) - sqrt(252·σ²_{t|t-1})
-    ŷ_t = a + b · raw_signal_t
-
-This avoids the P-Q level mismatch while preserving GARCH's information
-about conditional variance dynamics.
-"""
 from __future__ import annotations
 
 import numpy as np
@@ -50,10 +37,7 @@ class GARCHModel(BaseModel):
         self._vix_current: np.ndarray | None = None
         self._test_returns_pct: np.ndarray | None = None
 
-    # ══════════════════════════════════════════════════════════════
     #  FIT
-    # ══════════════════════════════════════════════════════════════
-
     def fit(self, X: np.ndarray, y: np.ndarray,
             returns: np.ndarray | None = None) -> "GARCHModel":
         if returns is None:
@@ -135,13 +119,6 @@ class GARCHModel(BaseModel):
 
     def _calibrate_on_training(self, ret_pct: np.ndarray,
                                 y: np.ndarray) -> None:
-        """
-        Mincer-Zarnowitz calibration: regress actual ΔVIX on
-        raw GARCH signal (change in annualized vol) using training data.
-
-        raw_signal_t = sqrt(252·σ²_{t+1|t}) - sqrt(252·σ²_{t|t-1})
-        y_t = a + b · raw_signal_t + ε_t
-        """
         sigma2 = self._train_sigma2_series
         if sigma2 is None or len(sigma2) < 50:
             self.calib_a_ = 0.0
@@ -202,10 +179,7 @@ class GARCHModel(BaseModel):
             self.calib_a_ = float(np.mean(tgt_valid))
             self.calib_b_ = 1.0
 
-    # ══════════════════════════════════════════════════════════════
     #  PREDICT
-    # ══════════════════════════════════════════════════════════════
-
     def set_test_info(self, vix_current: np.ndarray,
                       returns_test: np.ndarray | None = None,
                       **kwargs) -> None:
@@ -234,16 +208,7 @@ class GARCHModel(BaseModel):
         return self.predict(X)
 
     def _predict_core(self) -> np.ndarray:
-        """
-        Change-based forecast with Mincer-Zarnowitz calibration.
-
-        For each test day i:
-          1. σ²_current is the filtered conditional variance at day i
-          2. σ²_forecast is the h-step ahead conditional variance
-          3. raw_signal = sqrt(252·σ²_forecast) - sqrt(252·σ²_current)
-          4. pred = a + b · raw_signal  (calibrated on training)
-          5. Update σ² using actual return (no look-ahead)
-        """
+        
         n = len(self._vix_current)
         omega = self.omega_
         alpha = self.alpha_
@@ -268,8 +233,7 @@ class GARCHModel(BaseModel):
                 252.0 * max(sigma2_current, 1e-8)
             )
 
-            # ── h-step ahead forecast ──
-            # 1-step: σ²_{t+1|t} = σ²_current (already computed)
+            # ── h-step ahead forecast ── 1-step: σ²_{t+1|t} = σ²_current (already computed)
             sigma2_next = sigma2_current
 
             if h == 1:
@@ -289,7 +253,7 @@ class GARCHModel(BaseModel):
             # ── Calibrated prediction ──
             preds[i] = self.calib_a_ + self.calib_b_ * raw_signal
 
-            # ── Filter σ² with actual test return (FIX 1) ──
+            # ── Filter σ² with actual test return ──
             if (self._test_returns_pct is not None
                     and i < len(self._test_returns_pct)):
                 eps2 = (self._test_returns_pct[i] - mu) ** 2
