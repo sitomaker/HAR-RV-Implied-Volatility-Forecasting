@@ -1,0 +1,78 @@
+{
+  "download_time": "2026-03-04T18:37:57.063703+00:00",
+  "period": {
+    "start": "2010-01-01",
+    "end": "2024-12-31"
+  },
+  "datasets": {
+    "SPY": {
+      "rows": 3773,
+      "start": "2010-01-04",
+      "end": "2024-12-30",
+      "sha256": "eb8f305c5cba376f",
+      "source": "yahoo",
+      "ticker": "SPY"
+    },
+    "VIX": {
+      "rows": 3773,
+      "start": "2010-01-04",
+      "end": "2024-12-30",
+      "sha256": "2b929fe3840d083a",
+      "source": "yahoo",
+      "ticker": "^VIX"
+    },
+    "VIX9D": {
+      "rows": 3521,
+      "start": "2011-01-03",
+      "end": "2024-12-30",
+      "sha256": "78aebba8aecde561",
+      "source": "yahoo",
+      "ticker": "^VIX9D"
+    },
+    "VIX3M": {
+      "rows": 3773,
+      "start": "2010-01-04",
+      "end": "2024-12-30",
+      "sha256": "edec5fc22b4ba36f",
+      "source": "yahoo",
+      "ticker": "^VIX3M"
+    },
+    "VIX6M": {
+      "rows": 3773,
+      "start": "2010-01-04",
+      "end": "2024-12-30",
+      "sha256": "eff8598d0f96d207",
+      "source": "yahoo",
+      "ticker": "^VIX6M"
+    },
+    "VXX": {
+      "rows": 1744,
+      "start": "2018-01-25",
+      "end": "2024-12-30",
+      "sha256": "c9bb656670c9ac62",
+      "source": "yahoo",
+      "ticker": "VXX"
+    },
+    "DGS10": {
+      "rows": 3912,
+      "sha256": "9e07d075deeec283",
+      "source": "fred",
+      "series_id": "DGS10"
+    },
+    "BAMLC0A1CAAA": {
+      "rows": 3964,
+      "sha256": "f43952210463df7f",
+      "source": "fred",
+      "series_id": "BAMLC0A1CAAA"
+    },
+    "BAMLC0A4CBBB": {
+      "rows": 3964,
+      "sha256": "662c6ef10b50f5ff",
+      "source": "fred",
+      "series_id": "BAMLC0A4CBBB"
+    },
+    "BAMLMKV2Y5Y": {
+      "status": "proxy_from_dgs10"
+    }
+  }
+}
