@@ -1,27 +1,3 @@
-"""
-models/har_regime.py — M5: HAR with Selective Regime Interactions
-
-LaTeX eq. (10) — mixed specification:
-
-    y_t^(h) = β_d · RV_t^(d) + β_w · RV_t^(w) + β_m · RV_t^(m)
-              + Σ_{k ∈ {L,M,H}} 1(regime_t = k) · [α_k + γ_k · VRP_t]
-              + ε_t
-
-Shared slopes (β_d, β_w, β_m) capture physical volatility dynamics
-that are approximately regime-invariant. Regime-specific slopes (γ_k)
-are applied only to VRP, whose relationship with ΔVIX is known to
-change across volatility states (Bekaert & Hoerova, 2014).
-
-Parameter count: 3 shared + 1×3 interaction + 3 intercepts = 9.
-(Original fully-interacted version: 4×3 + 3 = 15.)
-
-Design matrix (9 columns):
-    [RV_d  RV_w  RV_m | VRP×Low  VRP×Med  VRP×High | 1_Low  1_Med  1_High]
-     ─── shared ───    ──── regime-specific ─────    ──── intercepts ─────
-
-Ridge regularisation with λ selected by inner CV.
-fit_intercept=False because regime-specific intercepts are explicit.
-"""
 from __future__ import annotations
 
 import sys
@@ -53,23 +29,6 @@ _N_COLS      = _N_SHARED + _N_INTERACT + _N_INTERCEPT         # 9
 
 def _build_design_matrix(X_df: pd.DataFrame,
                          regime: pd.Series) -> np.ndarray:
-    """
-    Build the mixed shared/interaction design matrix.
-
-    Layout (9 columns for default config):
-        [0:3]  shared:      RV_d, RV_w, RV_m         (same across regimes)
-        [3:6]  interaction:  VRP×Low, VRP×Med, VRP×High
-        [6:9]  intercepts:  1_Low, 1_Med, 1_High
-
-    Parameters
-    ----------
-    X_df   : DataFrame with columns ⊇ FEATURES_M5_BASE, standardised.
-    regime : Series of str ('Low', 'Medium', 'High'), aligned with X_df.
-
-    Returns
-    -------
-    matrix : (T, _N_COLS) float64 array.
-    """
     T = len(X_df)
     matrix = np.zeros((T, _N_COLS), dtype=np.float64)
     col = 0
@@ -113,19 +72,6 @@ def _coef_names() -> list[str]:
 
 
 class HARRegime(BaseModel):
-    """
-    M5: HAR with Selective Regime Interactions (Ridge).
-
-    Usage
-    -----
-    model = HARRegime(alpha=lam)
-    model.fit(X_train_df, y_train, regime_train)
-    preds = model.predict(X_test_df, regime_test)
-
-    X : DataFrame with at least FEATURES_M5_BASE columns (standardised).
-    regime : Series of str ('Low', 'Medium', 'High').
-    """
-
     def __init__(self, alpha: float = 1.0) -> None:
         super().__init__(name="M5-HAR-Regime")
         self.alpha  = alpha
@@ -136,15 +82,7 @@ class HARRegime(BaseModel):
             X: pd.DataFrame,
             y: np.ndarray,
             regime: pd.Series) -> "HARRegime":
-        """
-        Fit Ridge on the mixed design matrix.
-
-        Parameters
-        ----------
-        X      : DataFrame (T, ≥4) with FEATURES_M5_BASE.
-        y      : (T,) target array.
-        regime : (T,) Series of regime labels.
-        """
+        
         Z = _build_design_matrix(X, regime)
         self._model.fit(Z, y)
         self.coef_     = self._model.coef_
@@ -172,12 +110,6 @@ class HARRegime(BaseModel):
         return {f: cd[f] for f in _SHARED_FEATURES}
 
     def regime_coefs(self, regime: str) -> dict:
-        """
-        Return intercept + interaction coefficients for one regime.
-
-        Example for regime='High':
-            {'VRP_x_High': ..., 'intercept_High': ...}
-        """
         self._check_is_fitted()
         if regime not in _REGIMES:
             raise ValueError(
