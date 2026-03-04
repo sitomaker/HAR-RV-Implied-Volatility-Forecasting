@@ -1,21 +1,3 @@
-"""
-reporting/figures.py — Generate all figures for the paper.
-
-14 figures total, saved as PDF + PNG in output/figures/.
-
-Changes from original:
-  - fig_har_vrp: Y-axis label corrected to "VIX3M − VIX9D" (LaTeX slope def.)
-  - fig_structural_stability: CUSUM uses Brown-Durbin-Evans (1975) correct
-    bounds ±(c_α + 2(t−k)/n) with c_0.05 = 0.948; not the ad-hoc version.
-  - fig_cumulative_r2: dates derived from fold_info (safe); shows M2 + all-model
-    confidence band; bootstrap CI shaded.
-  - fig_fold_rmse: parametrized for both horizons; includes M5.
-  - fig_vix_timeseries: regime shading upper bound from ax.get_ylim() not 90.
-  - fig_model_nesting: complete test battery (CW: M0→M2, M0→M3, M0→M4,
-    M2→M3, M2→M4; DM: M0/M1→M4, M4→M5, M1 vs M0).
-  - NEW fig_walkforward_timeline: broken_barh timeline as requested in LaTeX.
-  - NEW fig_regime_r2: R²_oos bar chart by regime for all models (LaTeX §regime_perf).
-"""
 from __future__ import annotations
 
 import pickle
@@ -135,10 +117,7 @@ def _dates_from_folds(fold_info: list[dict]) -> list[pd.Timestamp]:
     return dates
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  FIGURE 0: WALK-FORWARD TIMELINE  (LaTeX §figplaceholder)
-# ══════════════════════════════════════════════════════════════════════════════
-
+#  FIGURE 0: WALK-FORWARD TIMELINE 
 def fig_walkforward_timeline(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """
     Horizontal broken_barh timeline showing expanding training windows,
@@ -230,10 +209,7 @@ def fig_walkforward_timeline(features: pd.DataFrame, master: pd.DataFrame) -> No
     save_fig(fig, "fig00_walkforward_timeline")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 #  FIGURE 1: VIX TIME SERIES
-# ══════════════════════════════════════════════════════════════════════════════
-
 def fig_vix_timeseries(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """Three panels: VIX level with regime shading, Δ1, Δ5."""
     fig, axes = plt.subplots(3, 1, figsize=(14, 10), sharex=True)
@@ -302,10 +278,7 @@ def fig_vix_timeseries(features: pd.DataFrame, master: pd.DataFrame) -> None:
     save_fig(fig, "fig01_vix_timeseries")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 #  FIGURE 2: HAR COMPONENTS + VRP
-# ══════════════════════════════════════════════════════════════════════════════
-
 def fig_har_vrp(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """Four panels: RV components, VRP, term structure slope, regime bar."""
     fig, axes = plt.subplots(4, 1, figsize=(14, 12), sharex=True)
@@ -376,10 +349,7 @@ def fig_har_vrp(features: pd.DataFrame, master: pd.DataFrame) -> None:
     save_fig(fig, "fig02_har_vrp")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 #  FIGURE 3: DISTRIBUTION OF ΔVIX
-# ══════════════════════════════════════════════════════════════════════════════
-
 def fig_distribution(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """Histogram + KDE + QQ for both horizons."""
     from scipy import stats
@@ -418,10 +388,7 @@ def fig_distribution(features: pd.DataFrame, master: pd.DataFrame) -> None:
     save_fig(fig, "fig03_distribution")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 #  FIGURE 4: CORRELATION HEATMAP
-# ══════════════════════════════════════════════════════════════════════════════
-
 def fig_correlation(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """Lower-triangle correlation heatmap of all features and targets."""
     try:
@@ -448,10 +415,8 @@ def fig_correlation(features: pd.DataFrame, master: pd.DataFrame) -> None:
     save_fig(fig, "fig04_correlation")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+ 
 #  FIGURE 5: RV ESTIMATOR COMPARISON
-# ══════════════════════════════════════════════════════════════════════════════
-
 def fig_rv_comparison(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """Compare GK, Parkinson, and Close-to-Close RV estimates."""
     from features.pipeline import (
@@ -500,10 +465,8 @@ def fig_rv_comparison(features: pd.DataFrame, master: pd.DataFrame) -> None:
     save_fig(fig, "fig05_rv_comparison")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+ 
 #  FIGURE 6: RESIDUAL DIAGNOSTICS
-# ══════════════════════════════════════════════════════════════════════════════
-
 def fig_residual_diagnostics(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """Residual diagnostics for HAR-Extended (M4), h=5."""
     import statsmodels.api as sm
@@ -542,10 +505,8 @@ def fig_residual_diagnostics(features: pd.DataFrame, master: pd.DataFrame) -> No
     save_fig(fig, "fig06_residual_diagnostics")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+ 
 #  FIGURE 7: CUSUM + RECURSIVE COEFFICIENTS
-# ══════════════════════════════════════════════════════════════════════════════
-
 def fig_structural_stability(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """
     CUSUM of recursive residuals (Brown, Durbin & Evans 1975).
@@ -617,10 +578,8 @@ def fig_structural_stability(features: pd.DataFrame, master: pd.DataFrame) -> No
     save_fig(fig, "fig07_structural_stability")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+ 
 #  FIGURE 8: FOLD-BY-FOLD RMSE  (both horizons)
-# ══════════════════════════════════════════════════════════════════════════════
-
 def fig_fold_rmse(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """Walk-forward RMSE by fold for key models, h=1 and h=5."""
     all_results = _load_results()
@@ -684,10 +643,8 @@ def fig_fold_rmse(features: pd.DataFrame, master: pd.DataFrame) -> None:
     save_fig(fig, "fig08_fold_rmse")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+ 
 #  FIGURE 9: CUMULATIVE R²_OOS
-# ══════════════════════════════════════════════════════════════════════════════
-
 def fig_cumulative_r2(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """
     Running cumulative R²_oos over time for M2, M4, M5 at h=5.
@@ -759,10 +716,8 @@ def fig_cumulative_r2(features: pd.DataFrame, master: pd.DataFrame) -> None:
     save_fig(fig, "fig09_cumulative_r2")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+ 
 #  FIGURE 10: EQUITY CURVE + DRAWDOWN
-# ══════════════════════════════════════════════════════════════════════════════
-
 def fig_equity_curve(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """Strategy equity curve and drawdown vs SPY buy-and-hold."""
     try:
@@ -806,10 +761,8 @@ def fig_equity_curve(features: pd.DataFrame, master: pd.DataFrame) -> None:
     save_fig(fig, "fig10_equity_curve")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+ 
 #  FIGURE 11: PERFORMANCE BY REGIME
-# ══════════════════════════════════════════════════════════════════════════════
-
 def fig_regime_returns(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """Average strategy returns by VIX regime (bar chart)."""
     regime_path = TABLE_DIR / "trading_by_regime.csv"
@@ -844,10 +797,8 @@ def fig_regime_returns(features: pd.DataFrame, master: pd.DataFrame) -> None:
     save_fig(fig, "fig11_regime_returns")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+ 
 #  FIGURE 12: MODEL NESTING DIAGRAM
-# ══════════════════════════════════════════════════════════════════════════════
-
 def fig_model_nesting(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """
     Complete model nesting / comparison diagram.
@@ -922,10 +873,8 @@ def fig_model_nesting(features: pd.DataFrame, master: pd.DataFrame) -> None:
     save_fig(fig, "fig12_model_nesting")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  FIGURE 13 (NEW): R²_OOS BY REGIME  (LaTeX §regime_perf)
-# ══════════════════════════════════════════════════════════════════════════════
-
+ 
+#  FIGURE 13 (NEW): R²_OOS BY REGIME
 def fig_regime_r2(features: pd.DataFrame, master: pd.DataFrame) -> None:
     """
     Grouped bar chart of R²_oos per VIX regime for all models.
@@ -983,9 +932,9 @@ def fig_regime_r2(features: pd.DataFrame, master: pd.DataFrame) -> None:
     save_fig(fig, "fig13_regime_r2")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+ 
 #  MASTER GENERATOR
-# ══════════════════════════════════════════════════════════════════════════════
+ 
 
 def generate_all_figures() -> None:
     """Generate all 14 figures."""
