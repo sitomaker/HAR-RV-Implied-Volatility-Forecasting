@@ -1,16 +1,3 @@
-"""
-analysis/insample.py — In-Sample Estimation Results.
-
-Produces:
-- HAR-OLS coefficients with HAC standard errors (Table 3)
-- SHAR coefficients + asymmetry F-test (Table 4)
-- HAR-Extended coefficients (Table 5)
-- Residual diagnostics (Ljung-Box, ARCH LM)
-- Structural stability (CUSUM, recursive coefficients)
-
-All estimated on FULL SAMPLE for interpretability.
-The walk-forward OOS results (§12) use expanding windows.
-"""
 import sys
 from pathlib import Path
 import numpy as np
@@ -34,10 +21,7 @@ def andrews_hac_lags(T: int) -> int:
     return int(np.floor(4 * (T / 100) ** (2 / 9)))
 
 
-# ══════════════════════════════════════════════════════════════
 #  OLS WITH HAC STANDARD ERRORS
-# ══════════════════════════════════════════════════════════════
-
 def ols_hac(X: pd.DataFrame, y: pd.Series,
             hac_lags: int = None) -> dict:
     """
@@ -109,10 +93,7 @@ def ols_hac(X: pd.DataFrame, y: pd.Series,
     }
 
 
-# ══════════════════════════════════════════════════════════════
 #  HAR-OLS ESTIMATION (TABLE 3)
-# ══════════════════════════════════════════════════════════════
-
 def estimate_har_ols(features: pd.DataFrame) -> dict:
     """
     Estimate HAR-OLS (Model 2) for both horizons.
@@ -154,10 +135,7 @@ def estimate_har_ols(features: pd.DataFrame) -> dict:
     return results
 
 
-# ══════════════════════════════════════════════════════════════
 #  SHAR ESTIMATION + ASYMMETRY TEST (TABLE 4)
-# ══════════════════════════════════════════════════════════════
-
 def estimate_shar(features: pd.DataFrame) -> dict:
     """
     Estimate SHAR (Model 3) and test β_d+ = β_d-.
@@ -220,10 +198,7 @@ def estimate_shar(features: pd.DataFrame) -> dict:
     return results
 
 
-# ══════════════════════════════════════════════════════════════
 #  HAR-EXTENDED ESTIMATION (TABLE 5)
-# ══════════════════════════════════════════════════════════════
-
 def estimate_har_extended(features: pd.DataFrame) -> dict:
     """
     Estimate HAR-Extended (Model 4) by OLS with HAC.
@@ -262,10 +237,7 @@ def estimate_har_extended(features: pd.DataFrame) -> dict:
     return results
 
 
-# ══════════════════════════════════════════════════════════════
 #  RESIDUAL DIAGNOSTICS
-# ══════════════════════════════════════════════════════════════
-
 def residual_diagnostics(results: dict, model_name: str) -> dict:
     """
     Compute residual diagnostics for a given estimation result.
@@ -310,10 +282,7 @@ def residual_diagnostics(results: dict, model_name: str) -> dict:
     return diagnostics
 
 
-# ══════════════════════════════════════════════════════════════
 #  STRUCTURAL STABILITY (CUSUM)
-# ══════════════════════════════════════════════════════════════
-
 def structural_stability(features: pd.DataFrame,
                          horizon: int = 5) -> dict:
     """
@@ -386,10 +355,7 @@ def structural_stability(features: pd.DataFrame,
     return result
 
 
-# ══════════════════════════════════════════════════════════════
 #  MASTER IN-SAMPLE RUNNER
-# ══════════════════════════════════════════════════════════════
-
 def run_insample():
     """Run all in-sample analyses."""
     print("=" * 60)
