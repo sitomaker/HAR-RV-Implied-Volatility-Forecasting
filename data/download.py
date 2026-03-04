@@ -1,9 +1,3 @@
-"""
-data/download.py — Download all raw data from Yahoo Finance and FRED.
-
-ICE BofA series (BAML*) require FRED API key authentication.
-The public CSV endpoint only works for non-proprietary series like DGS10.
-"""
 import sys
 import hashlib
 import json
