@@ -1,22 +1,3 @@
-"""
-data/clean.py — Load raw parquets and produce a single aligned DataFrame.
-
-Handles:
-- Calendar alignment (all series on SPY trading days)
-- Forward-fill for FRED gaps
-- OHLC adjustment verification
-- Data quality checks
-
-Output: single parquet with all raw series aligned by date.
-
-Changes vs original:
-- spread = BAA - AAA  (Moody's quality spread), matching LaTeX §5.6 / Table 1.
-  Previously used BAMLC0A0CM (ICE BofA IG OAS), which is conceptually
-  similar but not what the paper describes.
-- MOVE loaded from FRED series BAMLMKV2Y5Y (ICE BofA MOVE Index) when
-  available, with a proxy fallback (22-day rolling vol of DGS10) when not.
-  Previously always used the proxy without disclosing it.
-"""
 import sys
 from pathlib import Path
 
