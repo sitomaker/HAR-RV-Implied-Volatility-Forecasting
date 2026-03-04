@@ -1,9 +1,3 @@
-"""
-models/base.py — Abstract base class for all forecasting models.
-
-Every model must implement fit() and predict() with the same signature.
-This enforces interchangeability in the walk-forward evaluator.
-"""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -12,13 +6,6 @@ import numpy as np
 
 
 class BaseModel(ABC):
-    """
-    Abstract forecasting model.
-
-    Subclasses must implement fit() and predict(). All other shared
-    behaviour (is_fitted guard, repr) is handled here.
-    """
-
     def __init__(self, name: str) -> None:
         self.name      = name
         self.is_fitted = False
@@ -27,30 +14,9 @@ class BaseModel(ABC):
 
     @abstractmethod
     def fit(self, X: np.ndarray, y: np.ndarray) -> "BaseModel":
-        """
-        Fit model on training data.
-
-        Parameters
-        ----------
-        X : (T, p) feature matrix, already standardised where applicable.
-        y : (T,)   target vector.
-
-        Returns self for method chaining.
-        """
 
     @abstractmethod
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """
-        Generate predictions for out-of-sample data.
-
-        Parameters
-        ----------
-        X : (n, p) feature matrix, standardised with training statistics.
-
-        Returns
-        -------
-        preds : (n,) array of point forecasts.
-        """
 
     # ── Utilities ─────────────────────────────────────────────────────────
 
@@ -72,10 +38,6 @@ class BaseModel(ABC):
         return X
 
     def coef_dict(self) -> dict:
-        """
-        Returns named coefficients. Override in subclasses that carry
-        interpretable linear coefficients.
-        """
         return {}
 
     def __repr__(self) -> str:
