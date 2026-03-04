@@ -1,9 +1,3 @@
-"""
-features/pipeline.py — Deterministic feature engineering pipeline.
-
-All features at index t use only information from filtration F_t.
-Targets y^(h) = VIX_{t+h} - VIX_t use shift(-h) and are forward-looking.
-"""
 import sys
 from pathlib import Path
 
@@ -19,15 +13,8 @@ from config import (
 )
 
 
-# ══════════════════════════════════════════════════════════════
 #  LOW-LEVEL RV ESTIMATORS
-# ══════════════════════════════════════════════════════════════
-
 def garman_klass_daily(spy: pd.DataFrame) -> pd.Series:
-    """
-    Daily Garman-Klass variance (not annualised).
-    sigma²_GK = 0.5*(log H/L)² - (2*log2 - 1)*(log C/O)²
-    """
     log_hl = np.log(spy["SPY_High"]  / spy["SPY_Low"])
     log_co = np.log(spy["SPY_Close"] / spy["SPY_Open"])
     gk = 0.5 * log_hl ** 2 - (2 * np.log(2) - 1) * log_co ** 2
@@ -35,44 +22,28 @@ def garman_klass_daily(spy: pd.DataFrame) -> pd.Series:
 
 
 def parkinson_daily(spy: pd.DataFrame) -> pd.Series:
-    """
-    Daily Parkinson variance (not annualised).
-    sigma²_P = (log H/L)² / (4 * log 2)
-    """
     log_hl = np.log(spy["SPY_High"] / spy["SPY_Low"])
     return (log_hl ** 2) / (4 * np.log(2))
 
 
 def cc_daily(spy: pd.DataFrame) -> pd.Series:
-    """
-    Daily close-to-close squared return (not annualised).
-    sigma²_CC = r_t²
-    """
     log_ret = np.log(spy["SPY_Close"] / spy["SPY_Close"].shift(1))
     return log_ret ** 2
 
 
 def rv_rolling(daily_var: pd.Series, window: int) -> pd.Series:
-    """
-    Annualised RV from rolling sum of daily variances.
-    RV^(h)_t = sqrt(252/h * sum_{i=1}^{h} sigma²_{t-i+1}) * 100
-    """
     return np.sqrt(
         (TRADING_DAYS_YEAR / window) * daily_var.rolling(window).sum()
     ) * 100
 
 
 def rv_close_to_close(returns: pd.Series, window: int) -> pd.Series:
-    """Annualised close-to-close RV in percentage units."""
     return np.sqrt(
         (TRADING_DAYS_YEAR / window) * (returns ** 2).rolling(window).sum()
     ) * 100
 
 
-# ══════════════════════════════════════════════════════════════
 #  HAR COMPONENTS
-# ══════════════════════════════════════════════════════════════
-
 def har_components(daily_var: pd.Series) -> pd.DataFrame:
     """
     Corsi (2009) HAR triple: RV_d, RV_w, RV_m.
@@ -83,16 +54,8 @@ def har_components(daily_var: pd.Series) -> pd.DataFrame:
     return pd.DataFrame({"RV_d": rv_d, "RV_w": rv_w, "RV_m": rv_m})
 
 
-# ══════════════════════════════════════════════════════════════
 #  SEMI-VARIANCE COMPONENTS
-# ══════════════════════════════════════════════════════════════
-
 def signed_semi_variances(ret: pd.Series) -> pd.DataFrame:
-    """
-    Patton & Sheppard (2015) signed semi-variance decomposition.
-    RS+_t = r_t² * 1(r_t >= 0)
-    RS-_t = r_t² * 1(r_t <  0)
-    """
     rs_plus  = (ret ** 2) * (ret >= 0).astype(float)
     rs_minus = (ret ** 2) * (ret <  0).astype(float)
 
@@ -106,19 +69,8 @@ def signed_semi_variances(ret: pd.Series) -> pd.DataFrame:
     return pd.DataFrame({"RV_d_plus": rv_d_plus, "RV_d_minus": rv_d_minus})
 
 
-# ══════════════════════════════════════════════════════════════
 #  VARIANCE RISK PREMIUM
-# ══════════════════════════════════════════════════════════════
-
 def variance_risk_premium(vix: pd.Series, rv_m: pd.Series) -> pd.Series:
-    """
-    VRP_t = VIX_t² - [RV^(m)_t]²   (annualised variance points, %²/year)
-
-    Winsorized at [1st, 99th] percentiles to limit influence of
-    extreme outliers (e.g., COVID-19 March 2020 where VIX² > 6800).
-    Winsorization is applied using expanding percentiles to avoid
-    look-ahead bias: percentile at time t is computed from [0, t].
-    """
     vrp_raw = vix ** 2 - rv_m ** 2
 
     # ── Expanding-window winsorization (no look-ahead) ────────
@@ -129,10 +81,7 @@ def variance_risk_premium(vix: pd.Series, rv_m: pd.Series) -> pd.Series:
     return vrp
 
 
-# ══════════════════════════════════════════════════════════════
 #  VIX TERM STRUCTURE
-# ══════════════════════════════════════════════════════════════
-
 def vix_term_structure(
     vix9d: pd.Series,
     vix: pd.Series,
@@ -147,10 +96,7 @@ def vix_term_structure(
     return pd.DataFrame({"slope": slope, "curv": curv})
 
 
-# ══════════════════════════════════════════════════════════════
 #  REGIME CLASSIFICATION
-# ══════════════════════════════════════════════════════════════
-
 def classify_regime(vix: pd.Series) -> pd.Series:
     """
     Three-state regime: Low (<15), Medium (15-25), High (>=25).
@@ -161,14 +107,7 @@ def classify_regime(vix: pd.Series) -> pd.Series:
     ).astype(str)
 
 
-# ══════════════════════════════════════════════════════════════
 #  PREDICTION TARGETS
-# ══════════════════════════════════════════════════════════════
-
-# ══════════════════════════════════════════════════════════════
-#  PREDICTION TARGETS (MODIFICADO)
-# ══════════════════════════════════════════════════════════════
-
 def build_targets(vix: pd.Series) -> pd.DataFrame:
  
     # Aritméticos (original)
@@ -199,28 +138,11 @@ def build_targets(vix: pd.Series) -> pd.DataFrame:
         "y5_win": y5_win,   # Winsorizado
     })
 
-# ══════════════════════════════════════════════════════════════
 #  MAIN FEATURE BUILDER
-# ══════════════════════════════════════════════════════════════
-
 def build_all_features(
     rv_estimator: str = RV_PRIMARY,
     verify_leak: bool = True,
-) -> pd.DataFrame:
-    """
-    Build the complete feature DataFrame for one RV estimator.
-
-    Pipeline:
-      1.  Daily variance from SPY OHLC
-      2.  HAR triple: RV_d, RV_w, RV_m
-      3.  Semi-variances: RV_d_plus, RV_d_minus
-      4.  VRP (winsorized, expanding-window percentiles)
-      5.  Term structure: slope, curvature
-      6.  Macro: dy10, MOVE, credit spread
-      7.  Lagged returns: r_lag1, r_lag5
-      8.  VIX level + regime
-      9.  Targets: y1, y5
-    """
+) -> pd.DataFrame: 
     master = pd.read_parquet(DATA_PROC / "master.parquet")
     feat   = pd.DataFrame(index=master.index)
 
@@ -246,11 +168,6 @@ def build_all_features(
     feat["VRP"] = variance_risk_premium(vix, feat["RV_m"])
 
     # ── 5. VIX term structure ─────────────────────────────────
-    # VIX9D begins 2011-01-03 (252 trading days after sample start).
-    # For the pre-2011 period, proxy VIX9D ≈ VIX.  Both measure
-    # near-term implied volatility (9-day vs 30-day), so
-    # slope ≈ VIX3M - VIX remains a valid term-structure measure.
-    # Intra-sample gaps (holidays etc.) are forward-filled up to 5 days.
     vix9d = master["VIX9D"].copy()
     n_missing_before = vix9d.isna().sum()
     vix9d = vix9d.fillna(vix)           # pre-2011: VIX9D ≈ VIX
@@ -288,21 +205,13 @@ def build_all_features(
     if verify_leak:
         _verify_no_leakage(feat, master)
     
-    # Reportar distribuciones
     report_target_distributions(feat)
 
     return feat
 
 
-# ══════════════════════════════════════════════════════════════
 #  ANTI-LEAKAGE VERIFICATION
-# ══════════════════════════════════════════════════════════════
-
 def _verify_no_leakage(feat: pd.DataFrame, master: pd.DataFrame) -> None:
-    """
-    Correlation-based sanity check: features should not exhibit
-    suspiciously high correlation with same-day future returns.
-    """
     fwd_ret = master["SPY_ret"].shift(-1)
     common  = feat.index.intersection(fwd_ret.dropna().index)
 
@@ -326,7 +235,6 @@ def _verify_no_leakage(feat: pd.DataFrame, master: pd.DataFrame) -> None:
         print("  ✓ No obvious leakage detected.")
 
 def report_target_distributions(feat: pd.DataFrame) -> None:
-    """Reporta estadísticas de distribución de los targets."""
     from scipy.stats import jarque_bera, skew, kurtosis
     
     print("\n── Target Distribution Analysis ──")
@@ -350,10 +258,7 @@ def report_target_distributions(feat: pd.DataFrame) -> None:
               f"JB p={jb_p:.4f}")
         
 
-# ══════════════════════════════════════════════════════════════
 #  BUILD AND SAVE ALL ESTIMATOR VARIANTS
-# ══════════════════════════════════════════════════════════════
-
 def build_and_save_all() -> None:
     """Build and persist feature parquets for all three RV estimators."""
     print("=" * 60)
