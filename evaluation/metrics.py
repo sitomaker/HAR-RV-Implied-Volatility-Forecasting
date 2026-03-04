@@ -1,36 +1,11 @@
-"""
-evaluation/metrics.py — Performance metrics for OOS evaluation.
-
-Implements (LaTeX §evaluation):
-    R²_oos      Campbell-Thompson (2008) out-of-sample R²
-    HitRate     Fraction of correctly predicted signs
-    PT test     Pesaran-Timmermann (1992) directional accuracy test
-    BootCI      Block-bootstrap confidence interval for R²_oos
-    RegimeMetrics  Regime-conditional breakdown of all metrics
-
-All functions accept 1-D numpy arrays and return plain Python scalars
-or dicts for easy serialization.
-"""
 from __future__ import annotations
 
 import numpy as np
 from scipy import stats
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 #  OUT-OF-SAMPLE R²  (LaTeX eq. 14)
-# ══════════════════════════════════════════════════════════════════════════════
-
 def oos_r2(actual: np.ndarray, predicted: np.ndarray) -> float:
-    """
-    Campbell-Thompson (2008) out-of-sample R².
-
-        R²_oos = 1 - sum(e²) / sum(y²)
-
-    Denominator = MSE of the random walk benchmark (which forecasts zero).
-    R²_oos > 0  ↔  model beats the random walk.
-    R²_oos ≤ 0  ↔  random walk is at least as good.
-    """
     actual    = np.asarray(actual,    dtype=float)
     predicted = np.asarray(predicted, dtype=float)
 
@@ -50,24 +25,6 @@ def oos_r2_bootstrap_ci(
     confidence: float = 0.95,
     seed: int = 42,
 ) -> dict:
-    """
-    Block-bootstrap confidence interval for R²_oos (LaTeX §r2oos).
-
-    Block length b = max(2*h, 10) to account for the MA(h-1) dependence
-    induced by overlapping h=5 targets.
-
-    Parameters
-    ----------
-    actual     : realized values
-    predicted  : point forecasts
-    horizon    : h, used to set block length b = max(2h, 10)
-    n_boot     : number of bootstrap replications (default 1,000)
-    confidence : nominal coverage (default 0.95)
-
-    Returns
-    -------
-    dict with keys: r2, ci_lower, ci_upper, se_boot
-    """
     actual    = np.asarray(actual,    dtype=float)
     predicted = np.asarray(predicted, dtype=float)
     n         = len(actual)
@@ -99,22 +56,8 @@ def oos_r2_bootstrap_ci(
     }
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  DIRECTIONAL ACCURACY  (LaTeX eq. 15)
-# ══════════════════════════════════════════════════════════════════════════════
-
+#  DIRECTIONAL ACCURACY
 def hit_rate(actual: np.ndarray, predicted: np.ndarray) -> float:
-    """
-    Fraction of observations where sign(y_hat) == sign(y).
-
-    For M0 (predicted = 0 always): returns the naive baseline
-    max(Pr(y>0), Pr(y<0)), i.e. the accuracy of always predicting
-    the more frequent direction (LaTeX §hitrate remark).
-
-    For all other models, ties in predicted (predicted == 0) are
-    excluded from the count but included in the denominator, which
-    is the conservative treatment.
-    """
     actual    = np.asarray(actual,    dtype=float)
     predicted = np.asarray(predicted, dtype=float)
     n         = len(actual)
@@ -127,8 +70,7 @@ def hit_rate(actual: np.ndarray, predicted: np.ndarray) -> float:
         p_up = float(np.mean(actual > 0))
         return max(p_up, 1.0 - p_up)
 
-    # General case: correct sign matches, ties in predicted excluded from
-    # numerator but not denominator (conservative)
+    # General case: correct sign matches, ties in predicted excluded from numerator but not denominator (conservative)
     correct = np.sum(
         (np.sign(actual) == np.sign(predicted)) & (predicted != 0.0)
     )
@@ -139,18 +81,6 @@ def pesaran_timmermann(
     actual: np.ndarray,
     predicted: np.ndarray,
 ) -> dict:
-    """
-    Pesaran-Timmermann (1992) directional accuracy test.
-
-        H0: sign(y) and sign(y_hat) are independent.
-        H1: directional dependence exists (one-sided, N(0,1)).
-
-    The PT statistic is asymptotically N(0,1) under H0.
-
-    Returns
-    -------
-    dict with pt_stat, p_value (one-sided, upper tail)
-    """
     actual    = np.asarray(actual,    dtype=float)
     predicted = np.asarray(predicted, dtype=float)
     n         = len(actual)
@@ -180,34 +110,12 @@ def pesaran_timmermann(
     return {"pt_stat": float(pt_stat), "p_value": p_value}
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  REGIME-CONDITIONAL METRICS  (LaTeX §regime_perf)
-# ══════════════════════════════════════════════════════════════════════════════
-
+#  REGIME-CONDITIONAL METRICS 
 def regime_metrics(
     actual: np.ndarray,
     predicted: np.ndarray,
     regime: np.ndarray,
 ) -> dict:
-    """
-    Compute R²_oos, MSE, MAE, and HitRate within each VIX regime.
-
-    Implements the regime-conditional decomposition of LaTeX §regime_perf:
-        T_oos^(k) = {t in T_oos : regime_t = k}
-
-    This tests whether M5's regime-specific slopes yield measurable gains
-    in extreme regimes relative to the pooled M4.
-
-    Parameters
-    ----------
-    actual    : realized values over the OOS period
-    predicted : point forecasts
-    regime    : array of regime labels ('Low', 'Medium', 'High')
-
-    Returns
-    -------
-    dict keyed by regime label, each value a dict of metrics
-    """
     from .losses import mse as mse_fn, mae as mae_fn
 
     actual    = np.asarray(actual,    dtype=float)
